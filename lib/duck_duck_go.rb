@@ -6,6 +6,7 @@ module DuckDuckGo
   require 'rubygems'
   require 'uri'
   require 'httpclient'
+  require 'em-synchrony'
   require 'json'
   require 'duck_duck_go/zero_click_info'
 
@@ -34,13 +35,8 @@ module DuckDuckGo
     # Run a query against Duck Duck Go
     # Returns an instance of DuckDuckGo::ZeroClickInfo
     def zeroclickinfo(query, skip_disambiguation = false)
-      args = {
-        'q' => query,
-        'o' => 'json'
-      }
-      if(skip_disambiguation)
-        args['d'] = 1
-      end
+      
+      args = prepare_zci(query, skip_disambiguation)
       
       data = @http.get_content(@url, args)
   
@@ -52,6 +48,21 @@ module DuckDuckGo
     # Alias for DuckDuckGo::Main.zeroclickinfo
     def zci(*params)
       self.zeroclickinfo(*params)
+    end
+    
+    # break out prepare so other HTTP impls & strategies (like EM-Synchrony's multiget)
+    # can be used
+    def prepare_zci(query, skip_disambiguation = false)
+      args = {
+        'q' => query,
+        'o' => 'json'
+      }
+      if(skip_disambiguation)
+        args['d'] = 1
+      end
+      
+      args
+      
     end
   end
   
